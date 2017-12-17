@@ -1,0 +1,26 @@
+{
+  "name": "aoc-runner",
+  "version": "0.0.1",
+  "description": "Runner and testbed for Advent of Code solutions",
+  "main": "source/index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JLRishe/aoc-runner.git"
+  },
+  "keywords": [
+    "javascript",
+    "adventofcode"
+  ],
+  "author": "James Rishe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JLRishe/aoc-runner/issues"
+  },
+  "homepage": "https://github.com/JLRishe/aoc-runner#readme",
+  "dependencies": {
+    "ramda": "^0.25.0"
+  }
+}
