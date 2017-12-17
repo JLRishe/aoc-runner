@@ -1,7 +1,8 @@
 const fs = require('fs');
 const { __, compose, curry, map, replace, split, applyTo, forEach, apply, equals, when, isNil, identity, applySpec, memoizeWith, prop, always } = require('ramda');
-const { log, probe } = require('.');
 const path = require('path');
+
+const log = (...vals) => console.log.apply(console, vals);
 
 // String -> (String -> *) -> ()
 const loadFile = (path, cb) => fs.readFile(path, 'utf8', (err, contents) => {
