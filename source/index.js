@@ -1,16 +1,20 @@
 const fs = require('fs');
-const { __, compose, curry, map, replace, split, applyTo, forEach, apply } = require('ramda');
+const { __, compose, curry, map, replace, split, applyTo, forEach, apply, equals, when, isNil, identity, applySpec, memoizeWith, prop, always } = require('ramda');
+const { log, probe } = require('.');
+const path = require('path');
 
-const log = (...vals) => console.log.apply(console, vals);
-
+// String -> (String -> *) -> ()
 const loadFile = (path, cb) => fs.readFile(path, 'utf8', (err, contents) => {
     if (err) { console.log(err); } else { cb(contents); }
 });
 
+// String -> String
 const trimEnd = replace(/\s+$/, '');
 
-const loadInput = (folder, cb) => loadFile(`${folder}/input.txt`, cb);
+// String -> (String -> *) -> ()
+const loadInput = (folder, cb) => loadFile(path.resolve(folder, 'input.txt'), cb);
 
+// (* -> *) -> ... -> ()
 const timestamp = f => (...args) => {
     const startTime = new Date();
     log('Start', startTime);
@@ -21,32 +25,49 @@ const timestamp = f => (...args) => {
     log();
 };
 
-const runExAndLog = curry((input, ex) => compose(log, applyTo(input))(ex));
-
+// String -> (* -> *) -> ()
 const runExercise = curry((input, exercise) =>
-    timestamp(runExAndLog(input))(exercise)
+    timestamp(compose(log, exercise))(input)
 );
 
-const runExercises = curry((exercises, input) => 
-    forEach(runExercise(input), exercises)
+// [(* -> *)] -> String ()
+const runExercises = (exercises) => compose(
+    forEach(__, exercises), 
+    runExercise, 
+    trimEnd
 );
 
-const run = (folder, exercises) =>  
-    loadInput(folder, compose(runExercises(exercises), trimEnd));
-
+// String -> [String]
 const splitLines = split(/\r\n|\r|\n/);
     
-const feedLinesToEx = ex => compose(ex, splitLines);
+// DaySpec => [(* -> *)]
+const prepare = ({ solution: { type, pre, ps } }) => {
+    const parser = memoizeWith(identity, pre || identity);
     
-const runLines = (folder, exercises) =>
-    run(folder, map(feedLinesToEx, exercises));
+    return type === 'lines'
+        ? map(p => compose(p, map(parser), splitLines), ps)
+        : map(p => compose(p, parser), ps);
+};
 
-
+// String -> String -> ()
+const prepareAndRun = compose(runExercises, prepare, require);
+    
+// String -> ()
+const runSolution = (relPath) => {
+    const fullPath = path.resolve(process.cwd(), relPath);
+    
+    loadInput(
+        fullPath, 
+        prepareAndRun(fullPath)
+    );
+};
+    
+    
 module.exports = {
     loadFile
     , loadInput
     , trimEnd
     , splitLines
-    , run
-    , runLines
+    , runSolution
+    , prepare
 };
