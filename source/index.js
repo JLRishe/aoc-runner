@@ -3,6 +3,7 @@ const { __, compose, curry, map, replace, split, applyTo, forEach, apply, equals
 const path = require('path');
 
 const log = (...vals) => console.log.apply(console, vals);
+const probe = val => (log(val),val);
 
 // String -> (String -> *) -> ()
 const loadFile = (path, cb) => fs.readFile(path, 'utf8', (err, contents) => {
@@ -10,7 +11,7 @@ const loadFile = (path, cb) => fs.readFile(path, 'utf8', (err, contents) => {
 });
 
 // String -> String
-const trimEnd = replace(/\s+$/, '');
+const trimEnd = replace(/(\r\n|\r|\n)$/, '');
 
 // String -> (String -> *) -> ()
 const loadInput = (folder, cb) => loadFile(path.resolve(folder, 'input.txt'), cb);
@@ -34,8 +35,7 @@ const runExercise = curry((input, exercise) =>
 // [(* -> *)] -> String ()
 const runExercises = (exercises) => compose(
     forEach(__, exercises), 
-    runExercise, 
-    trimEnd
+    runExercise
 );
 
 // String -> [String]
@@ -46,8 +46,8 @@ const prepare = ({ solution: { type, pre, ps } }) => {
     const parser = memoizeWith(identity, pre || identity);
     
     return type === 'lines'
-        ? map(p => compose(p, map(parser), splitLines), ps)
-        : map(p => compose(p, parser), ps);
+        ? map(p => compose(p, map(parser), splitLines, trimEnd), ps)
+        : map(p => compose(p, parser, trimEnd), ps);
 };
 
 // String -> String -> ()
